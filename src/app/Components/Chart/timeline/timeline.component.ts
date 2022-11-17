@@ -11,7 +11,7 @@ import { empty } from 'rxjs';
 export class TimelineComponent implements OnInit, AfterViewInit {
   startHour: number = 7;
   endHour: number = 21;
-  defaultHeight: number = 50;
+  defaultHeight: number = 55;
   selectedDate: string = '2022-11-15';
 
   constructor() { }

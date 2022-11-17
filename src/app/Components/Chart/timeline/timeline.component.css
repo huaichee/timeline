@@ -1,0 +1,19 @@
+.available {
+    background-color: #0f9d58;
+}
+
+.booked {
+    background-color: #FF4560;
+}
+
+.available, .booked {
+    color: white;
+    font-weight: bold;
+}
+
+.podY {
+    writing-mode: vertical-rl;
+    text-orientation: sideways-right;
+    transform: rotate(-180deg);
+    vertical-align: middle;
+}

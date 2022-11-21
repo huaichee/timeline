@@ -43,10 +43,8 @@ export class TimelineComponent implements OnInit, AfterViewInit {
 
   private uniquePod()
   {
-    let dataDetails = this.dataReceived();
-
     let preparePod = [];
-    for(let data of dataDetails) {
+    for(let data of this.dataReceived()) {
       preparePod.push(data.podType);
     }
 
@@ -56,19 +54,10 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   private processedAvailableHour()
   {
     let availableHour = this.generateAvailableHour();
-    for(let bookedPod of availableHour) {
-      if(bookedPod.length > 4) {
-        bookedPod.pop(1);
-      }
-    }
 
-    let sortedPod = [];
-    let uniquePod = this.uniquePod();
-    for (let pod of uniquePod.entries()) {
-      let podGroup = availableHour.filter((e:any) => e.podType === pod[1]);
-      sortedPod.push(podGroup);  
-    }
-    let final = sortedPod.flatMap((podGroup) => {
+    return this.uniquePod().map(podType => {
+      return availableHour.filter(e => e.podType === podType);
+    }).flatMap((podGroup) => {
       return podGroup.map((pod) => {
         return [
           pod.podType,
@@ -78,8 +67,6 @@ export class TimelineComponent implements OnInit, AfterViewInit {
         ];
       });
     });
-
-    return final;
   }
 
   private generateAvailableHour()
@@ -99,28 +86,22 @@ export class TimelineComponent implements OnInit, AfterViewInit {
         let currentSecondStart = new Date(this.selectedDate + ' ' + i + ':30:00');
         let currentSecondEnd = new Date(this.selectedDate + ' ' + (i + 1)+ ':00:00');
 
-        availableHour.push(
-          {
+        availableHour.push({
             ['podType']: pod[1],
             ['label']: '',
             ['startTime']: currentStart,
             ['endTime']: currentEnd,
             ['color']: podColor
-          }
-        )
+        });
 
-        availableHour.push(
-          {
+        availableHour.push({
             ['podType']: pod[1],
             ['label']: '',
             ['startTime']: currentSecondStart,
             ['endTime']: currentSecondEnd,
             ['color']: podColor
-          }
-        )
+        });
 
-        // availableHour.push([pod[1], '', currentStart, currentEnd, podColor]);
-        // availableHour.push([pod[1], '', currentSecondStart, currentSecondEnd, podColor]);
       }
     }
 
@@ -130,7 +111,6 @@ export class TimelineComponent implements OnInit, AfterViewInit {
       let bookEnd = (podTime.endTime.getHours() * 60) + podTime.endTime.getMinutes();
       let toBeRemove = [];
       
-      // console.log( podTime.startTime.getHours());
       for (let [index, pod] of availableHour.entries()) {
         let currentStart = (pod.startTime.getHours() * 60) + pod.startTime.getMinutes(); 
         let currentEnd = (pod.endTime.getHours() * 60) + pod.endTime.getMinutes(); 
@@ -198,15 +178,15 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   private dataReceived()
   {
     let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
-
-    return data['result']['stat'].map(this.mapData);
+    
+    return  data['result']['stat'].map(this.mapData, this.selectedDate);
   }
 
   private mapData(dataDetail: any)
   {
     let emptySlot = new Date(0,0,0,0,0,0);
-    let emptySlotStart = dataDetail['label'] != undefined ? new Date('2022-11-09 07:00:00') : emptySlot;
-    let emptySlotEnd = dataDetail['label'] != undefined ? new Date('2022-11-09 21:00:00') : emptySlot;
+    let emptySlotStart = dataDetail['label'] != undefined ? new Date(this + ' 07:00:00') : emptySlot;
+    let emptySlotEnd = dataDetail['label'] != undefined ? new Date(this + ' 21:00:00') : emptySlot;
 
     let fillColor = dataDetail['fillColor'] ?? 'green';
 

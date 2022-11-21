@@ -55,14 +55,21 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   private processedAvailableHour()
   {
     let availableHour = this.generateAvailableHour();
-    
     for(let bookedPod of availableHour) {
       if(bookedPod.length > 4) {
         bookedPod.pop(1);
       }
     }
 
-    return availableHour;
+    let sortedPod = [];
+    let uniquePod = this.uniquePod();
+    for (let pod of uniquePod.entries()) {
+      let podGroup = availableHour.filter((e:any) => e[0] === pod[1]);
+      sortedPod.push(podGroup);  
+    }
+
+
+    return sortedPod.flat();
   }
 
   private generateAvailableHour()
@@ -122,7 +129,6 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   {
     let availableHour = this.generateAvailableHour();
   
-    // console.log(availableHour);
     let podTypeList = [];
     for(let podType of this.uniquePod()) {
       let pereparePodList = availableHour.filter((obj) => {
@@ -163,6 +169,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   {
     // let data = JSON.parse('{"result": {"stat": [{"x": "Pod 1","y": [1668466800000.0,1668510000000.0],"fillColor": "#FF4560","label": "Alan : 2 hr(s)"},{"x": "Pod 1","y": [1668510000000.0,1668513600000.0],"fillColor": "#77b5fe","label": "Admin : 1 hr(s)"},{"x": "Pod 2","y": [1668495600000.0,1668497400000.0],"fillColor": "#FF4560","label": "Admin : 0.5 hr(s)"},{"x": "Pod 2","y": [1668528000000.0,1668533400000.0],"fillColor": "#FF4560","label": "Alan : 1.5 hr(s)"},{"x": "Pod 3","y": [],"fillColor": null,"label": null},{"x": "Pod 4","y": [],"fillColor": "#77b5fe","label": null}]},"targetUrl": null,"success": true,"error": null,"unAuthorizedRequest": false,"__abp": true}');
 
+    // let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
     let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
 
     return data['result']['stat'].map(this.mapData);
@@ -171,19 +178,21 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   private mapData(dataDetail: any)
   {
     let emptySlot = new Date(0,0,0,0,0,0);
+    let emptySlotStart = dataDetail['label'] != undefined ? new Date('2022-11-09 07:00:00') : emptySlot;
+    let emptySlotEnd = dataDetail['label'] != undefined ? new Date('2022-11-09 21:00:00') : emptySlot;
+
     let fillColor = dataDetail['fillColor'] ?? 'green';
     return [
       dataDetail['x'].toUpperCase(),
       dataDetail['label'],
-      dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][0]): emptySlot,
-      dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][1]): emptySlot,
+      dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][0]): emptySlotStart,
+      dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][1]): emptySlotEnd,
       fillColor
     ];
   }
 
   static timeConvert(datetime: number)
   {
-
     return new Date(new Date(datetime).toLocaleString('en', {timeZone: 'GMT'}));
   }
 

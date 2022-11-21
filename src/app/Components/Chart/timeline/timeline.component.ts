@@ -132,11 +132,10 @@ export class TimelineComponent implements OnInit, AfterViewInit {
       
       // console.log( podTime.startTime.getHours());
       for (let [index, pod] of availableHour.entries()) {
-        // console.log(new Date(pod[2]).getHours() + ' + ' + pod[0]);
         let currentStart = (pod.startTime.getHours() * 60) + pod.startTime.getMinutes(); 
         let currentEnd = (pod.endTime.getHours() * 60) + pod.endTime.getMinutes(); 
         
-        if(currentStart >= bookStart && currentEnd <= bookEnd && pod[0] == podTime.podType) {
+        if(currentStart >= bookStart && currentEnd <= bookEnd && pod.podType == podTime.podType) {
           toBeRemove.push(index);
         }
       }

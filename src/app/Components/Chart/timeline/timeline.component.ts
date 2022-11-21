@@ -45,10 +45,9 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   {
     let dataDetails = this.dataReceived();
 
-    console.log(dataDetails);
     let preparePod = [];
     for(let data of dataDetails) {
-      preparePod.push(data[0]);
+      preparePod.push(data.podType);
     }
 
     return preparePod.filter(this.onlyUnique);
@@ -59,19 +58,28 @@ export class TimelineComponent implements OnInit, AfterViewInit {
     let availableHour = this.generateAvailableHour();
     for(let bookedPod of availableHour) {
       if(bookedPod.length > 4) {
-        bookedPod.splice(1);
+        bookedPod.pop(1);
       }
     }
 
     let sortedPod = [];
     let uniquePod = this.uniquePod();
     for (let pod of uniquePod.entries()) {
-      let podGroup = availableHour.filter((e:any) => e[0] === pod[1]);
+      let podGroup = availableHour.filter((e:any) => e.podType === pod[1]);
       sortedPod.push(podGroup);  
     }
+    let final = sortedPod.flatMap((podGroup) => {
+      return podGroup.map((pod) => {
+        return [
+          pod.podType,
+          pod.label,
+          pod.startTime,
+          pod.endTime
+        ];
+      });
+    });
 
-
-    return sortedPod.flat();
+    return final;
   }
 
   private generateAvailableHour()
@@ -91,31 +99,52 @@ export class TimelineComponent implements OnInit, AfterViewInit {
         let currentSecondStart = new Date(this.selectedDate + ' ' + i + ':30:00');
         let currentSecondEnd = new Date(this.selectedDate + ' ' + (i + 1)+ ':00:00');
 
-        availableHour.push([pod[1], '', currentStart, currentEnd, podColor]);
-        availableHour.push([pod[1], '', currentSecondStart, currentSecondEnd, podColor]);
+        availableHour.push(
+          {
+            ['podType']: pod[1],
+            ['label']: '',
+            ['startTime']: currentStart,
+            ['endTime']: currentEnd,
+            ['color']: podColor
+          }
+        )
+
+        availableHour.push(
+          {
+            ['podType']: pod[1],
+            ['label']: '',
+            ['startTime']: currentSecondStart,
+            ['endTime']: currentSecondEnd,
+            ['color']: podColor
+          }
+        )
+
+        // availableHour.push([pod[1], '', currentStart, currentEnd, podColor]);
+        // availableHour.push([pod[1], '', currentSecondStart, currentSecondEnd, podColor]);
       }
     }
 
     //booked
     for (let podTime of booked) {
-      let bookStart = (new Date(podTime[3]).getHours() * 60) + new Date(podTime[3]).getMinutes(); 
-      let bookEnd = (new Date(podTime[4]).getHours() * 60) + new Date(podTime[4]).getMinutes();
+      let bookStart = (podTime.startTime.getHours() * 60) + podTime.startTime.getMinutes(); 
+      let bookEnd = (podTime.endTime.getHours() * 60) + podTime.endTime.getMinutes();
       let toBeRemove = [];
       
+      // console.log( podTime.startTime.getHours());
       for (let [index, pod] of availableHour.entries()) {
-        let currentStart = (new Date(pod[3]).getHours() * 60) + new Date(pod[3]).getMinutes(); 
-        let currentEnd = (new Date(pod[4]).getHours() * 60) + new Date(pod[4]).getMinutes(); 
+        // console.log(new Date(pod[2]).getHours() + ' + ' + pod[0]);
+        let currentStart = (pod.startTime.getHours() * 60) + pod.startTime.getMinutes(); 
+        let currentEnd = (pod.endTime.getHours() * 60) + pod.endTime.getMinutes(); 
         
-        if(currentStart >= bookStart && currentEnd <= bookEnd && pod[0] == podTime[0]) {
+        if(currentStart >= bookStart && currentEnd <= bookEnd && pod[0] == podTime.podType) {
           toBeRemove.push(index);
         }
       }
-      
       for(let removeIndex of toBeRemove.reverse()) {
         availableHour.splice(removeIndex, 1);
       }
 
-      let bookedStartHour = podTime[2].getHours();
+      let bookedStartHour = podTime.startTime.getHours();
       if(bookedStartHour >= this.startHour) {
         availableHour.push(podTime);
       }
@@ -133,15 +162,15 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   
     let podTypeList = [];
     for(let podType of this.uniquePod()) {
-      let pereparePodList = availableHour.filter((obj) => {
-        return obj[0] == podType;
+      let pereparePodList = availableHour.filter((pod) => {
+        return pod.podType == podType;
       }).sort(function(a, b){
-        return a[3] - b[3]
+        return a.startHour - b.startHour;
       });
 
       let preparePod = [];
       for(let data of pereparePodList) {
-        preparePod.push(data[1] != '' ? data[1] : data[0]);
+        preparePod.push(data.label != '' ? data.label : data.podType);
       }
 
       let podList = preparePod.filter(this.onlyUnique);
@@ -152,14 +181,14 @@ export class TimelineComponent implements OnInit, AfterViewInit {
     var colors: string[] = [];
     for(let podTypes of podTypeList) {
       podTypes['podType'].forEach(item => {
-        let bookedDetail = availableHour.find(pod => pod[1] === item);
-        let emptyPodDetail = availableHour.find(pod => pod[0] === item);
+        let bookedDetail = availableHour.find(pod => pod.label === item);
+        let emptyPodDetail = availableHour.find(pod => pod.podType === item);
 
-        let itemColor = this.uniquePod().includes(item) || bookedDetail == undefined || bookedDetail.length < 4 ? emptyPodDetail[2] : bookedDetail[2];
+        let itemColor = this.uniquePod().includes(item) || bookedDetail == undefined || bookedDetail.length < 4 ? emptyPodDetail.color : bookedDetail.color;
         colors.push(itemColor);
       });
     }
-    
+
     return colors;
   }
 

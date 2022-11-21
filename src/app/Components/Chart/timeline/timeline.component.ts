@@ -44,6 +44,8 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   private uniquePod()
   {
     let dataDetails = this.dataReceived();
+
+    console.log(dataDetails);
     let preparePod = [];
     for(let data of dataDetails) {
       preparePod.push(data[0]);
@@ -57,7 +59,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
     let availableHour = this.generateAvailableHour();
     for(let bookedPod of availableHour) {
       if(bookedPod.length > 4) {
-        bookedPod.pop(1);
+        bookedPod.splice(1);
       }
     }
 
@@ -96,13 +98,13 @@ export class TimelineComponent implements OnInit, AfterViewInit {
 
     //booked
     for (let podTime of booked) {
-      let bookStart = (new Date(podTime[2]).getHours() * 60) + new Date(podTime[2]).getMinutes(); 
-      let bookEnd = (new Date(podTime[3]).getHours() * 60) + new Date(podTime[3]).getMinutes();
+      let bookStart = (new Date(podTime[3]).getHours() * 60) + new Date(podTime[3]).getMinutes(); 
+      let bookEnd = (new Date(podTime[4]).getHours() * 60) + new Date(podTime[4]).getMinutes();
       let toBeRemove = [];
       
       for (let [index, pod] of availableHour.entries()) {
-        let currentStart = (new Date(pod[2]).getHours() * 60) + new Date(pod[2]).getMinutes(); 
-        let currentEnd = (new Date(pod[3]).getHours() * 60) + new Date(pod[3]).getMinutes(); 
+        let currentStart = (new Date(pod[3]).getHours() * 60) + new Date(pod[3]).getMinutes(); 
+        let currentEnd = (new Date(pod[4]).getHours() * 60) + new Date(pod[4]).getMinutes(); 
         
         if(currentStart >= bookStart && currentEnd <= bookEnd && pod[0] == podTime[0]) {
           toBeRemove.push(index);
@@ -134,7 +136,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
       let pereparePodList = availableHour.filter((obj) => {
         return obj[0] == podType;
       }).sort(function(a, b){
-        return a[2] - b[2]
+        return a[3] - b[3]
       });
 
       let preparePod = [];
@@ -153,7 +155,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
         let bookedDetail = availableHour.find(pod => pod[1] === item);
         let emptyPodDetail = availableHour.find(pod => pod[0] === item);
 
-        let itemColor = this.uniquePod().includes(item) || bookedDetail == undefined || bookedDetail.length < 4 ? emptyPodDetail[4] : bookedDetail[4];
+        let itemColor = this.uniquePod().includes(item) || bookedDetail == undefined || bookedDetail.length < 4 ? emptyPodDetail[2] : bookedDetail[2];
         colors.push(itemColor);
       });
     }
@@ -167,9 +169,6 @@ export class TimelineComponent implements OnInit, AfterViewInit {
 
   private dataReceived()
   {
-    // let data = JSON.parse('{"result": {"stat": [{"x": "Pod 1","y": [1668466800000.0,1668510000000.0],"fillColor": "#FF4560","label": "Alan : 2 hr(s)"},{"x": "Pod 1","y": [1668510000000.0,1668513600000.0],"fillColor": "#77b5fe","label": "Admin : 1 hr(s)"},{"x": "Pod 2","y": [1668495600000.0,1668497400000.0],"fillColor": "#FF4560","label": "Admin : 0.5 hr(s)"},{"x": "Pod 2","y": [1668528000000.0,1668533400000.0],"fillColor": "#FF4560","label": "Alan : 1.5 hr(s)"},{"x": "Pod 3","y": [],"fillColor": null,"label": null},{"x": "Pod 4","y": [],"fillColor": "#77b5fe","label": null}]},"targetUrl": null,"success": true,"error": null,"unAuthorizedRequest": false,"__abp": true}');
-
-    // let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
     let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
 
     return data['result']['stat'].map(this.mapData);
@@ -182,13 +181,14 @@ export class TimelineComponent implements OnInit, AfterViewInit {
     let emptySlotEnd = dataDetail['label'] != undefined ? new Date('2022-11-09 21:00:00') : emptySlot;
 
     let fillColor = dataDetail['fillColor'] ?? 'green';
-    return [
-      dataDetail['x'].toUpperCase(),
-      dataDetail['label'],
-      dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][0]): emptySlotStart,
-      dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][1]): emptySlotEnd,
-      fillColor
-    ];
+
+    return {
+        ['podType']: dataDetail['x'].toUpperCase(),
+        ['label']: dataDetail['label'],
+        ['startTime']: dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][0]): emptySlotStart,
+        ['endTime']: dataDetail['y'].length > 0  ? TimelineComponent.timeConvert(dataDetail['y'][1]): emptySlotEnd,
+        ['color']: fillColor
+    };
   }
 
   static timeConvert(datetime: number)

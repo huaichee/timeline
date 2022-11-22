@@ -82,10 +82,6 @@ export class TimelineComponent implements OnInit, AfterViewInit {
     for(let podDetail of schedule) {
       finalSchedule.push(podDetail);
     }
-    
-    finalSchedule.concat(schedule);
-
-    console.log(finalSchedule);
 
     return finalSchedule;
   }

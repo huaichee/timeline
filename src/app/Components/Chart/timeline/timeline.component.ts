@@ -53,35 +53,27 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   private processedAvailableHour()
   {
     let availableHour = this.generateAvailableHour();
-
-    let columnSetting: any = [ 
+    let finalSchedule = [[ 
       {label: 'PodType', id: 'podtype', type: 'string'}, 
       {label: 'Id', id: 'Id', type: 'string'},
       {label: 'color', role: 'style', type: 'string'},
       {label: 'Start', id: 'Start', type: 'date'},
       {label: 'End', id: 'End', type: 'date'}  
-    ];
+    ]];
 
-    let finalSchedule: any = [];
-    finalSchedule.push(columnSetting);
-
-    let schedule: string[][] = this.uniquePod().map(podType => {
+    this.uniquePod().map(podType => {
       return availableHour.filter(e => e.podType === podType);
-    }).flatMap((podGroup) => {
-      return podGroup.map((pod) => {
-        return [
+    }).forEach((podGroup) => {
+      podGroup.forEach((pod) => {
+        finalSchedule.push([
           pod.podType,
           pod.label,
           pod.color,
           pod.startTime,
           pod.endTime
-        ];
+        ]);
       });
     });
-
-    for(let podDetail of schedule) {
-      finalSchedule.push(podDetail);
-    }
 
     return finalSchedule;
   }

@@ -11,7 +11,7 @@ import { empty } from 'rxjs';
 export class TimelineComponent implements OnInit, AfterViewInit {
   startHour: number = 7;
   endHour: number = 21;
-  defaultHeight: number = 55;
+  defaultHeight: number = 45;
   selectedDate: string = '2022-11-9';
   defaultPodColor: string = 'green';
 
@@ -27,7 +27,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
     chartType: GoogleChartType.Timeline,
     dataTable: this.processedAvailableHour(),
     options: {
-      height: this.defaultHeight * this.uniquePod().length,
+      height: (this.defaultHeight * this.uniquePod().length) + 55,
       hAxis: {
         minValue: new Date(this.selectedDate).setHours(this.startHour),  
         maxValue: new Date(this.selectedDate).setHours(this.endHour),  
@@ -167,7 +167,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
         colors.push(itemColor);
       });
     }
-
+    console.log(colors);
     return colors;
   }
 
@@ -177,8 +177,9 @@ export class TimelineComponent implements OnInit, AfterViewInit {
 
   private dataReceived()
   {
-    let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
-    
+    let data = JSON.parse('{"result":{"stat":[{"x":"aaaTestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"NotAvailable"},{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
+    // let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
+
     return  data['result']['stat'].map(this.mapData, this.selectedDate);
   }
 

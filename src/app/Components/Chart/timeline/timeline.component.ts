@@ -32,8 +32,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
         minValue: new Date(this.selectedDate).setHours(this.startHour),  
         maxValue: new Date(this.selectedDate).setHours(this.endHour),  
       },
-      timeline: { },
-      colors: this.timelineColor()
+      timeline: { }
     }
   };
 
@@ -55,19 +54,42 @@ export class TimelineComponent implements OnInit, AfterViewInit {
   {
     let availableHour = this.generateAvailableHour();
 
-    return this.uniquePod().map(podType => {
+    let columnSetting: any = [ 
+      {label: 'PodType', id: 'podtype', type: 'string'}, 
+      {label: 'Id', id: 'Id', type: 'string'},
+      {label: 'color', role: 'style', type: 'string'},
+      {label: 'Start', id: 'Start', type: 'date'},
+      {label: 'End', id: 'End', type: 'date'}  
+    ];
+
+    let finalSchedule: any = [];
+    finalSchedule.push(columnSetting);
+
+    let schedule: string[][] = this.uniquePod().map(podType => {
       return availableHour.filter(e => e.podType === podType);
     }).flatMap((podGroup) => {
       return podGroup.map((pod) => {
         return [
           pod.podType,
           pod.label,
+          pod.color,
           pod.startTime,
           pod.endTime
         ];
       });
     });
+
+    for(let podDetail of schedule) {
+      finalSchedule.push(podDetail);
+    }
+    
+    finalSchedule.concat(schedule);
+
+    console.log(finalSchedule);
+
+    return finalSchedule;
   }
+
 
   private generateAvailableHour()
   {
@@ -129,46 +151,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
       }
     }
 
-    // Timeline chart will auto exclude item with index: 0. Add redundancy to prevent that
-    availableHour.push(availableHour[0]);
-
     return availableHour;
-  }
-
-  private timelineColor()
-  {
-    let availableHour = this.generateAvailableHour();
-  
-    let podTypeList = [];
-    for(let podType of this.uniquePod()) {
-      let pereparePodList = availableHour.filter((pod) => {
-        return pod.podType == podType;
-      }).sort(function(a, b){
-        return a.startHour - b.startHour;
-      });
-
-      let preparePod = [];
-      for(let data of pereparePodList) {
-        preparePod.push(data.label != '' ? data.label : data.podType);
-      }
-
-      let podList = preparePod.filter(this.onlyUnique);
-
-      podTypeList.push({podType: podList})
-    }
-
-    var colors: string[] = [];
-    for(let podTypes of podTypeList) {
-      podTypes['podType'].forEach(item => {
-        let bookedDetail = availableHour.find(pod => pod.label === item);
-        let emptyPodDetail = availableHour.find(pod => pod.podType === item);
-
-        let itemColor = this.uniquePod().includes(item) || bookedDetail == undefined || bookedDetail.length < 4 ? emptyPodDetail.color : bookedDetail.color;
-        colors.push(itemColor);
-      });
-    }
-    console.log(colors);
-    return colors;
   }
 
   private onlyUnique(value: any, index: any, self: any) {
@@ -177,7 +160,7 @@ export class TimelineComponent implements OnInit, AfterViewInit {
 
   private dataReceived()
   {
-    let data = JSON.parse('{"result":{"stat":[{"x":"aaaTestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"NotAvailable"},{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
+    let data = JSON.parse('{"result":{"stat":[{"x":"aaaTestPod3","y":[],"fillColor":"grey","label":"NotAvailable"},{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"},{"x":"TestPod2","y":[1667995200000,1668002400000],"fillColor":"#FF4560","label":"Jon:2hr(s)"},{"x":"TestPod1","y":[1668009600000,1668016800000],"fillColor":"#FF4560","label":"Samsung:2hr(s)"},{"x":"TestPod2","y":[1668002400000,1668009600000],"fillColor":"#FF4560","label":"admin:2hr(s)"},{"x":"TestPod4","y":[],"fillColor":null,"label":null},{"x":"podmansd","y":[],"fillColor":null,"label":null},{"x":"e12312312","y":[],"fillColor":"#C8C8C8","label":"NotAvailable"},{"x":"asdasdasd","y":[],"fillColor":null,"label":null}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
     // let data = JSON.parse('{"result":{"stat":[{"x":"TestPod3","y":[1667989800000,1667995200000],"fillColor":"#FF4560","label":"admin:1.5hr(s)"}]},"targetUrl":null,"success":true,"error":null,"unAuthorizedRequest":false,"__abp":true}');
 
     return  data['result']['stat'].map(this.mapData, this.selectedDate);
